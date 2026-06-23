@@ -2,238 +2,424 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>平方数の和 3Dビジュアライザー - 完璧な直方体</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>平方数の和 3Dビジュアライザー</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #f0f0f0; }
-        #info { position: absolute; top: 10px; left: 10px; font-family: sans-serif; background: rgba(255,255,255,0.8); padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #ui-container { position: absolute; bottom: 40px; width: 100%; text-align: center; }
-        input[type=range] { width: 60%; max-width: 500px; cursor: pointer; }
-        #loading { position: absolute; top: 50%; width: 100%; text-align: center; font-family: sans-serif; font-size: 20px; font-weight: bold; }
+        /* === 今風のモダンなデザイン設定 === */
+        :root {
+            --primary-color: #007aff; /* iOS風のブルー */
+            --bg-color: #f2f2f7;
+            --panel-bg: rgba(255, 255, 255, 0.85); /* 半透明の白 */
+            --text-color: #1c1c1e;
+            --border-radius: 16px;
+        }
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            -webkit-touch-callout: none; /* スマホでの長押し選択を防止 */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* === 1. 上部の情報＆設定パネル === */
+        #info { 
+            position: absolute; 
+            top: 20px; 
+            left: 5%; 
+            width: 90%; 
+            box-sizing: border-box;
+            background: var(--panel-bg); 
+            backdrop-filter: blur(10px); /* 背景をぼかすガラス効果 */
+            -webkit-backdrop-filter: blur(10px);
+            padding: 15px; 
+            border-radius: var(--border-radius); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            z-index: 10;
+        }
+
+        h2 { 
+            margin: 0 0 10px 0; 
+            font-size: 18px; 
+            text-align: center;
+        }
+
+        p {
+            font-size: 13px;
+            color: #666;
+            margin: 5px 0 15px 0;
+            text-align: center;
+        }
+
+        /* スマホ向けに押しやすいドロップダウン */
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        select { 
+            width: 100%;
+            font-size: 16px; 
+            padding: 12px; 
+            border-radius: 10px;
+            border: 1px solid #d1d1d6;
+            background-color: #fff;
+            color: var(--text-color);
+            appearance: none; /* 標準の矢印を消す */
+            outline: none;
+        }
+        /* ドロップダウン用のカスタム矢印 */
+        .select-wrapper::after {
+            content: "▼";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #999;
+            pointer-events: none;
+        }
+
+        /* === 2. ローディング画面 === */
+        #loading { 
+            position: absolute; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(242, 242, 247, 0.9);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px; 
+            font-weight: bold; 
+            z-index: 20;
+            color: var(--primary-color);
+        }
+        /* くるくる回るアニメーション */
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #d1d1d6;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* === 3. 下部のスライダー（トグル）パネル === */
+        #ui-container { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 5%; 
+            width: 90%; 
+            box-sizing: border-box;
+            background: var(--panel-bg); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 20px; 
+            border-radius: var(--border-radius); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            z-index: 10;
+        }
+
+        /* スライダーの両端の文字 */
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        /* スマホ向けカスタムスライダー */
+        input[type=range] { 
+            -webkit-appearance: none;
+            width: 100%; 
+            background: transparent; 
+        }
+        input[type=range]:focus { outline: none; }
+        
+        /* スライダーのレール部分 */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: #d1d1d6;
+            border-radius: 4px;
+        }
+        /* スライダーのつまみ部分 */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 32px;
+            width: 32px;
+            border-radius: 50%;
+            background: #fff;
+            border: 1px solid #d1d1d6;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            margin-top: -12px; /* レールの中央に合わせる調整 */
+            cursor: pointer;
+        }
+        /* つまみを触っている時の色変更 */
+        input[type=range]:active::-webkit-slider-thumb {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
     <div id="info">
-        <h2>平方数の和の視覚化 (n=3)</h2>
-        <p>マウスでドラッグして視点を動かせます。</p>
-        <p>スライダーを動かして、6つのパーツを合体させましょう。</p>
+        <h2>平方数の和の視覚化</h2>
+        <p>画面をスワイプして視点を動かせます</p>
+        
+        <div class="select-wrapper">
+            <select id="n-select">
+                <option value="1">n = 1 (平方数: 1)</option>
+                <option value="2">n = 2 (平方数: 4)</option>
+                <option value="3" selected>n = 3 (平方数: 9)</option>
+                <option value="4">n = 4 (※計算に時間がかかります)</option>
+                <option value="5">n = 5 (※フリーズの可能性あり)</option>
+                <option value="6">n = 6 (※フリーズの可能性あり)</option>
+            </select>
+        </div>
     </div>
     
-    <div id="loading">パズルの正解を計算中...</div>
+    <div id="loading" style="display: none;">
+        <div class="spinner"></div>
+        <div>パズルを計算中...</div>
+    </div>
 
     <div id="ui-container" style="display:none;">
+        <div class="slider-labels">
+            <span>バラバラ</span>
+            <span>合体</span>
+        </div>
         <input type="range" id="assemblySlider" min="0" max="1" step="0.005" value="0">
     </div>
 
     <script>
-        // === 1. パズルの自動解答アルゴリズム ===
-        // 3×4×7の空間に6つのピラミッドをぴったり詰める計算を行います
-        const n = 3;
-        const W = n, H = n + 1, D = 2 * n + 1; // 幅3, 高さ4, 奥行き7
-
-        // ピラミッド1つ分のブロックの座標を作成 (14個のブロック)
-        const baseBlocks = [];
-        for(let y = 0; y < n; y++) {
-            for(let x = 0; x < n - y; x++) {
-                for(let z = 0; z < n - y; z++) {
-                    baseBlocks.push([x, y, z]);
-                }
-            }
-        }
-
-        // 3D空間での全24パターンの向き（回転行列）
-        const matrices = [
-            [1,0,0, 0,1,0, 0,0,1], [1,0,0, 0,0,-1, 0,1,0], [1,0,0, 0,-1,0, 0,0,-1], [1,0,0, 0,0,1, 0,-1,0],
-            [0,-1,0, 1,0,0, 0,0,1], [0,0,1, 1,0,0, 0,1,0], [0,1,0, 1,0,0, 0,0,-1], [0,0,-1, 1,0,0, 0,-1,0],
-            [-1,0,0, 0,-1,0, 0,0,1], [-1,0,0, 0,0,1, 0,1,0], [-1,0,0, 0,1,0, 0,0,-1], [-1,0,0, 0,0,-1, 0,-1,0],
-            [0,1,0, -1,0,0, 0,0,1], [0,0,-1, -1,0,0, 0,1,0], [0,-1,0, -1,0,0, 0,0,-1], [0,0,1, -1,0,0, 0,-1,0],
-            [0,0,1, 0,1,0, -1,0,0], [0,1,0, 0,0,-1, -1,0,0], [0,0,-1, 0,-1,0, -1,0,0], [0,-1,0, 0,0,1, -1,0,0],
-            [0,0,-1, 0,1,0, 1,0,0], [0,1,0, 0,0,1, 1,0,0], [0,0,1, 0,-1,0, 1,0,0], [0,-1,0, 0,0,-1, 1,0,0]
-        ];
-
-        // 全パターンの向きと、置ける場所をすべてリストアップ
-        const placements = [];
-        const uniqueShapes = new Set();
-        matrices.forEach(mat => {
-            let transformed = baseBlocks.map(p => [
-                p[0]*mat[0] + p[1]*mat[1] + p[2]*mat[2],
-                p[0]*mat[3] + p[1]*mat[4] + p[2]*mat[5],
-                p[0]*mat[6] + p[1]*mat[7] + p[2]*mat[8]
-            ]);
-            let minX = Math.min(...transformed.map(p=>p[0]));
-            let minY = Math.min(...transformed.map(p=>p[1]));
-            let minZ = Math.min(...transformed.map(p=>p[2]));
-            let shifted = transformed.map(p => [p[0]-minX, p[1]-minY, p[2]-minZ]);
-            shifted.sort((a,b) => (a[0]-b[0]) || (a[1]-b[1]) || (a[2]-b[2]));
-            
-            let hash = shifted.map(p => p.join(',')).join('|');
-            if(!uniqueShapes.has(hash)) {
-                uniqueShapes.add(hash);
-                let maxX = Math.max(...shifted.map(p=>p[0]));
-                let maxY = Math.max(...shifted.map(p=>p[1]));
-                let maxZ = Math.max(...shifted.map(p=>p[2]));
-                
-                // 3x4x7の枠内に収まるすべての位置を保存
-                for(let x=0; x<W-maxX; x++) {
-                    for(let y=0; y<H-maxY; y++) {
-                        for(let z=0; z<D-maxZ; z++) {
-                            placements.push(shifted.map(b => [b[0]+x, b[1]+y, b[2]+z]));
-                        }
-                    }
-                }
-            }
-        });
-
-        // 空間のどこに、どのパーツが置けるかのマップを作成
-        const cellMap = new Array(W*H*D).fill(0).map(()=>[]);
-        placements.forEach((pl, idx) => {
-            pl.forEach(b => cellMap[b[0] + b[1]*W + b[2]*W*H].push(idx));
-        });
-
-        // パズルを解く関数 (深さ優先探索)
-        let solution = null;
-        let grid = new Int32Array(W*H*D);
-        
-        function getBestEmptyCell() {
-            let bestCell = -1, minOptions = 999;
-            for(let i=0; i<W*H*D; i++) {
-                if (grid[i] === 0) {
-                    let options = 0;
-                    for(let pIdx of cellMap[i]) {
-                        if (placements[pIdx].every(b => grid[b[0] + b[1]*W + b[2]*W*H] === 0)) options++;
-                    }
-                    if (options === 0) return -2; // 行き止まり
-                    if (options < minOptions) { minOptions = options; bestCell = i; }
-                }
-            }
-            return bestCell;
-        }
-
-        function solvePuzzle(depth, used) {
-            if (depth === 6) { solution = used.map(idx => placements[idx]); return true; }
-            let targetCell = getBestEmptyCell();
-            if (targetCell < 0) return false;
-
-            for(let pIdx of cellMap[targetCell]) {
-                let pl = placements[pIdx];
-                if (pl.every(b => grid[b[0] + b[1]*W + b[2]*W*H] === 0)) {
-                    pl.forEach(b => grid[b[0] + b[1]*W + b[2]*W*H] = 1);
-                    used.push(pIdx);
-                    if (solvePuzzle(depth+1, used)) return true;
-                    used.pop();
-                    pl.forEach(b => grid[b[0] + b[1]*W + b[2]*W*H] = 0);
-                }
-            }
-            return false;
-        }
-
-        // ブラウザが開かれたらパズルを解く
-        setTimeout(() => {
-            solvePuzzle(0, []);
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('ui-container').style.display = 'block';
-            initThreeJS();
-        }, 100); // 描画処理を少し待ってから実行
-
-
-        // === 2. 3D描画処理 (Three.js) ===
-        const pyramidsData = [];
+        let scene, camera, renderer, controls;
+        let objectGroup = new THREE.Group(); 
+        let pyramidsData = [];
 
         function initThreeJS() {
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            scene = new THREE.Scene();
+            scene.add(objectGroup); 
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0xf0f0f0);
+            renderer.setClearColor(0xf2f2f7); // CSSの背景色に合わせました
             document.body.appendChild(renderer.domElement);
 
-            camera.position.set(12, 10, 18);
-            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
 
             const light = new THREE.DirectionalLight(0xffffff, 1.2);
             light.position.set(10, 20, 10);
             scene.add(light);
             scene.add(new THREE.AmbientLight(0x606060));
 
-            const colors = [0xe74c3c, 0x2ecc71, 0x3498db, 0xf1c40f, 0x9b59b6, 0x1abc9c];
-            // 直方体の中心を計算
-            const cx = (W - 1) / 2, cy = (H - 1) / 2, cz = (D - 1) / 2;
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
 
-            if (solution) {
-                for (let i = 0; i < 6; i++) {
-                    const group = new THREE.Group();
-                    const blocks = solution[i];
-                    let centerOfMass = new THREE.Vector3();
+            animate();
+        }
 
-                    // 解答の配置通りにブロックをグループ化して作成
-                    for (let b of blocks) {
-                        const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.95);
-                        const material = new THREE.MeshLambertMaterial({ color: colors[i] });
-                        const cube = new THREE.Mesh(geometry, material);
-                        
-                        // 直方体の中心が原点(0,0,0)になるように配置
-                        cube.position.set(b[0] - cx, b[1] - cy, b[2] - cz);
-                        
-                        const edges = new THREE.EdgesGeometry(geometry);
-                        cube.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 })));
-                        
-                        group.add(cube);
-                        centerOfMass.add(cube.position);
-                    }
-                    
-                    // 重心（中心点）を計算
-                    centerOfMass.divideScalar(14);
-                    scene.add(group);
-
-                    // バラバラの開始位置（重心から外側に飛ばす）
-                    const startPos = centerOfMass.clone().multiplyScalar(2.5);
-                    
-                    // バラバラの開始角度（ランダムに回転）
-                    const axis = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
-                    const startQuat = new THREE.Quaternion().setFromAxisAngle(axis, Math.PI * (Math.random() + 0.5));
-
-                    pyramidsData.push({
-                        mesh: group,
-                        startPos: startPos,
-                        endPos: new THREE.Vector3(0, 0, 0), // 最終的にぴったり合わさる位置
-                        startQuat: startQuat,
-                        endQuat: new THREE.Quaternion().identity()
-                    });
-                }
-
-                // 答え合わせ用の透明な直方体枠
-                const frameGeo = new THREE.BoxGeometry(W, H, D);
-                const frameMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.2 });
-                scene.add(new THREE.Mesh(frameGeo, frameMat));
-            }
-
-            const slider = document.getElementById('assemblySlider');
+        function animate() {
+            requestAnimationFrame(animate);
             
-            function animate() {
-                requestAnimationFrame(animate);
-                
+            const slider = document.getElementById('assemblySlider');
+            if (slider && pyramidsData.length > 0) {
                 const t = parseFloat(slider.value);
-                // アニメーションを滑らかにする計算 (イージング)
                 const easeT = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
                 
                 pyramidsData.forEach(p => {
                     p.mesh.position.lerpVectors(p.startPos, p.endPos, easeT);
                     p.mesh.quaternion.slerpQuaternions(p.startQuat, p.endQuat, easeT);
                 });
-
-                controls.update();
-                renderer.render(scene, camera);
             }
-            animate();
 
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+            controls.update();
+            renderer.render(scene, camera);
         }
+
+        function calculateAndRender(n) {
+            document.getElementById('loading').style.display = 'flex'; // blockからflexに変更（中央揃えのため）
+            document.getElementById('ui-container').style.display = 'none';
+            document.getElementById('assemblySlider').value = 0; 
+
+            setTimeout(() => {
+                const W = n, H = n + 1, D = 2 * n + 1;
+
+                const baseBlocks = [];
+                for(let y = 0; y < n; y++) {
+                    for(let x = 0; x < n - y; x++) {
+                        for(let z = 0; z < n - y; z++) {
+                            baseBlocks.push([x, y, z]);
+                        }
+                    }
+                }
+
+                const matrices = [
+                    [1,0,0, 0,1,0, 0,0,1], [1,0,0, 0,0,-1, 0,1,0], [1,0,0, 0,-1,0, 0,0,-1], [1,0,0, 0,0,1, 0,-1,0],
+                    [0,-1,0, 1,0,0, 0,0,1], [0,0,1, 1,0,0, 0,1,0], [0,1,0, 1,0,0, 0,0,-1], [0,0,-1, 1,0,0, 0,-1,0],
+                    [-1,0,0, 0,-1,0, 0,0,1], [-1,0,0, 0,0,1, 0,1,0], [-1,0,0, 0,1,0, 0,0,-1], [-1,0,0, 0,0,-1, 0,-1,0],
+                    [0,1,0, -1,0,0, 0,0,1], [0,0,-1, -1,0,0, 0,1,0], [0,-1,0, -1,0,0, 0,0,-1], [0,0,1, -1,0,0, 0,-1,0],
+                    [0,0,1, 0,1,0, -1,0,0], [0,1,0, 0,0,-1, -1,0,0], [0,0,-1, 0,-1,0, -1,0,0], [0,-1,0, 0,0,1, -1,0,0],
+                    [0,0,-1, 0,1,0, 1,0,0], [0,1,0, 0,0,1, 1,0,0], [0,0,1, 0,-1,0, 1,0,0], [0,-1,0, 0,0,-1, 1,0,0]
+                ];
+
+                const placements = [];
+                const uniqueShapes = new Set();
+                matrices.forEach(mat => {
+                    let transformed = baseBlocks.map(p => [
+                        p[0]*mat[0] + p[1]*mat[1] + p[2]*mat[2],
+                        p[0]*mat[3] + p[1]*mat[4] + p[2]*mat[5],
+                        p[0]*mat[6] + p[1]*mat[7] + p[2]*mat[8]
+                    ]);
+                    let minX = Math.min(...transformed.map(p=>p[0]));
+                    let minY = Math.min(...transformed.map(p=>p[1]));
+                    let minZ = Math.min(...transformed.map(p=>p[2]));
+                    let shifted = transformed.map(p => [p[0]-minX, p[1]-minY, p[2]-minZ]);
+                    shifted.sort((a,b) => (a[0]-b[0]) || (a[1]-b[1]) || (a[2]-b[2]));
+                    
+                    let hash = shifted.map(p => p.join(',')).join('|');
+                    if(!uniqueShapes.has(hash)) {
+                        uniqueShapes.add(hash);
+                        let maxX = Math.max(...shifted.map(p=>p[0]));
+                        let maxY = Math.max(...shifted.map(p=>p[1]));
+                        let maxZ = Math.max(...shifted.map(p=>p[2]));
+                        
+                        for(let x=0; x<W-maxX; x++) {
+                            for(let y=0; y<H-maxY; y++) {
+                                for(let z=0; z<D-maxZ; z++) {
+                                    placements.push(shifted.map(b => [b[0]+x, b[1]+y, b[2]+z]));
+                                }
+                            }
+                        }
+                    }
+                });
+
+                const cellMap = new Array(W*H*D).fill(0).map(()=>[]);
+                placements.forEach((pl, idx) => {
+                    pl.forEach(b => cellMap[b[0] + b[1]*W + b[2]*W*H].push(idx));
+                });
+
+                let solution = null;
+                let grid = new Int32Array(W*H*D);
+                
+                function getBestEmptyCell() {
+                    let bestCell = -1, minOptions = 999;
+                    for(let i=0; i<W*H*D; i++) {
+                        if (grid[i] === 0) {
+                            let options = 0;
+                            for(let pIdx of cellMap[i]) {
+                                if (placements[pIdx].every(b => grid[b[0] + b[1]*W + b[2]*W*H] === 0)) options++;
+                            }
+                            if (options === 0) return -2;
+                            if (options < minOptions) { minOptions = options; bestCell = i; }
+                        }
+                    }
+                    return bestCell;
+                }
+
+                function solvePuzzle(depth, used) {
+                    if (depth === 6) { solution = used.map(idx => placements[idx]); return true; }
+                    let targetCell = getBestEmptyCell();
+                    if (targetCell < 0) return false;
+
+                    for(let pIdx of cellMap[targetCell]) {
+                        let pl = placements[pIdx];
+                        if (pl.every(b => grid[b[0] + b[1]*W + b[2]*W*H] === 0)) {
+                            pl.forEach(b => grid[b[0] + b[1]*W + b[2]*W*H] = 1);
+                            used.push(pIdx);
+                            if (solvePuzzle(depth+1, used)) return true;
+                            used.pop();
+                            pl.forEach(b => grid[b[0] + b[1]*W + b[2]*W*H] = 0);
+                        }
+                    }
+                    return false;
+                }
+
+                const success = solvePuzzle(0, []);
+
+                if (success) {
+                    while(objectGroup.children.length > 0){ 
+                        objectGroup.remove(objectGroup.children[0]); 
+                    }
+                    pyramidsData = []; 
+
+                    const colors = [0xe74c3c, 0x2ecc71, 0x3498db, 0xf1c40f, 0x9b59b6, 0x1abc9c];
+                    const cx = (W - 1) / 2, cy = (H - 1) / 2, cz = (D - 1) / 2;
+
+                    for (let i = 0; i < 6; i++) {
+                        const group = new THREE.Group();
+                        const blocks = solution[i];
+                        let centerOfMass = new THREE.Vector3();
+
+                        for (let b of blocks) {
+                            const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.95);
+                            const material = new THREE.MeshLambertMaterial({ color: colors[i] });
+                            const cube = new THREE.Mesh(geometry, material);
+                            
+                            cube.position.set(b[0] - cx, b[1] - cy, b[2] - cz);
+                            
+                            const edges = new THREE.EdgesGeometry(geometry);
+                            cube.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 })));
+                            
+                            group.add(cube);
+                            centerOfMass.add(cube.position);
+                        }
+                        
+                        centerOfMass.divideScalar(baseBlocks.length);
+                        objectGroup.add(group);
+
+                        const startPos = centerOfMass.clone().multiplyScalar(2.5);
+                        const axis = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
+                        const startQuat = new THREE.Quaternion().setFromAxisAngle(axis, Math.PI * (Math.random() + 0.5));
+
+                        pyramidsData.push({
+                            mesh: group,
+                            startPos: startPos,
+                            endPos: new THREE.Vector3(0, 0, 0),
+                            startQuat: startQuat,
+                            endQuat: new THREE.Quaternion().identity()
+                        });
+                    }
+
+                    const frameGeo = new THREE.BoxGeometry(W, H, D);
+                    const frameMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.2 });
+                    objectGroup.add(new THREE.Mesh(frameGeo, frameMat));
+
+                    camera.position.set(W * 3.5, H * 2.5, D * 2.5);
+                } else {
+                    alert("パズルを解けませんでした。");
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('ui-container').style.display = 'block';
+
+            }, 50); 
+        }
+
+        window.onload = () => {
+            initThreeJS();
+            
+            const selectElement = document.getElementById('n-select');
+            selectElement.addEventListener('change', (e) => {
+                const selectedN = parseInt(e.target.value);
+                calculateAndRender(selectedN);
+            });
+
+            calculateAndRender(3);
+        };
     </script>
 </body>
 </html>
