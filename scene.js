@@ -1,42 +1,19 @@
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-function setupExpandedView(viewport) {
-    const workspace = viewport.closest('.workspace');
-    const toggle = workspace.querySelector('#expand-view');
-    const dialog = document.querySelector('#expanded-view');
-    if (typeof dialog.showModal !== 'function') return;
-
-    // Move the live view so its camera, playback and controls keep their state.
-    const originalPosition = document.createComment('3D workspace');
-    workspace.before(originalPosition);
-    let scrollY = 0;
+function setupViewerControls(viewport) {
+    const panel = viewport.querySelector('#viewer-controls');
+    const toggle = viewport.querySelector('#toggle-controls');
     toggle.hidden = false;
-
     toggle.addEventListener('click', () => {
-        if (dialog.open) {
-            dialog.close();
-            return;
-        }
-        scrollY = window.scrollY;
-        dialog.showModal();
-        dialog.append(workspace);
-        dialog.scrollTop = 0;
-        toggle.textContent = '閉じる';
-        toggle.setAttribute('aria-expanded', 'true');
-        toggle.focus({ preventScroll: true });
-    });
-
-    dialog.addEventListener('close', () => {
-        originalPosition.after(workspace);
-        window.scrollTo(0, scrollY);
-        toggle.textContent = '拡大表示';
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.focus({ preventScroll: true });
+        panel.hidden = !panel.hidden;
+        toggle.setAttribute('aria-expanded', String(!panel.hidden));
     });
 }
 
 function mountScene(viewport, { direction, width, height }) {
-    const message = document.querySelector('#scene-message');
+    const message = viewport.querySelector('#scene-message');
+    const viewArea = viewport.querySelector('.scene-area');
+    setupViewerControls(viewport);
     if (!window.THREE || !THREE.OrbitControls) {
         message.textContent = '3Dライブラリを読み込めませんでした。接続を確認して再読み込みしてください。';
         return null;
@@ -66,7 +43,7 @@ function mountScene(viewport, { direction, width, height }) {
     canvas.setAttribute('aria-label', '3Dビュー。矢印キーで回転、＋と−で拡大・縮小。');
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
-    viewport.prepend(canvas);
+    message.before(canvas);
     message.hidden = true;
 
     function draw() {
@@ -89,13 +66,27 @@ function mountScene(viewport, { direction, width, height }) {
     function fit(nextWidth = width, nextHeight = height) {
         width = nextWidth;
         height = nextHeight;
-        const aspect = viewport.clientWidth / Math.max(1, viewport.clientHeight);
-        const halfHeight = Math.max(height, width / Math.max(0.1, aspect)) / 2;
-        camera.left = -halfHeight * aspect;
-        camera.right = halfHeight * aspect;
+        const { clientWidth, clientHeight } = viewport;
+        if (!clientWidth || !clientHeight) return;
+
+        const bounds = viewport.getBoundingClientRect();
+        const area = viewArea.getBoundingClientRect();
+        const scale = Math.max(width / Math.max(1, area.width), height / Math.max(1, area.height));
+        const halfWidth = clientWidth * scale / 2;
+        const halfHeight = clientHeight * scale / 2;
+        camera.left = -halfWidth;
+        camera.right = halfWidth;
         camera.top = halfHeight;
         camera.bottom = -halfHeight;
-        camera.updateProjectionMatrix();
+        // Keep the model centered in the space between the controls.
+        camera.setViewOffset(
+            clientWidth,
+            clientHeight,
+            clientWidth / 2 - (area.left - bounds.left + area.width / 2),
+            clientHeight / 2 - (area.top - bounds.top + area.height / 2),
+            clientWidth,
+            clientHeight,
+        );
         invalidate();
     }
 
@@ -146,11 +137,14 @@ function mountScene(viewport, { direction, width, height }) {
     });
 
     controls.addEventListener('change', invalidate);
-    new ResizeObserver(() => {
-        renderer.setSize(viewport.clientWidth, viewport.clientHeight, false);
+    const resizeObserver = new ResizeObserver(entries => {
+        if (entries.some(entry => entry.target === viewport)) {
+            renderer.setSize(viewport.clientWidth, viewport.clientHeight, false);
+        }
         fit();
-    }).observe(viewport);
-    setupExpandedView(viewport);
+    });
+    resizeObserver.observe(viewport);
+    resizeObserver.observe(viewArea);
     reset();
     fit();
 
