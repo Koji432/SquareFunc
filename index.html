@@ -33,6 +33,7 @@
                     <div class="stage-actions">
                         <button class="quiet-button" id="reset-view" type="button">視点を戻す</button>
                         <button class="primary-button" id="play" type="button"><span class="play-icon" aria-hidden="true"></span><span id="play-label">組み立てる</span></button>
+                        <button class="quiet-button" id="expand-view" type="button" aria-controls="expanded-view" aria-expanded="false" hidden>拡大表示</button>
                     </div>
                 </header>
                 <div id="viewport" class="viewport" aria-label="平方数の和の3Dモデル">
@@ -95,5 +96,6 @@
             <div class="result-cell"><h2>1ピースの立方体数</h2><p id="cube-count">14 <small>個</small></p></div>
         </section>
     </main>
+    <dialog class="expanded-view" id="expanded-view" aria-label="3Dビューの拡大表示"></dialog>
 </body>
 </html>

@@ -1,5 +1,40 @@
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+function setupExpandedView(viewport) {
+    const workspace = viewport.closest('.workspace');
+    const toggle = workspace.querySelector('#expand-view');
+    const dialog = document.querySelector('#expanded-view');
+    if (typeof dialog.showModal !== 'function') return;
+
+    // Move the live view so its camera, playback and controls keep their state.
+    const originalPosition = document.createComment('3D workspace');
+    workspace.before(originalPosition);
+    let scrollY = 0;
+    toggle.hidden = false;
+
+    toggle.addEventListener('click', () => {
+        if (dialog.open) {
+            dialog.close();
+            return;
+        }
+        scrollY = window.scrollY;
+        dialog.showModal();
+        dialog.append(workspace);
+        dialog.scrollTop = 0;
+        toggle.textContent = '閉じる';
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.focus({ preventScroll: true });
+    });
+
+    dialog.addEventListener('close', () => {
+        originalPosition.after(workspace);
+        window.scrollTo(0, scrollY);
+        toggle.textContent = '拡大表示';
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.focus({ preventScroll: true });
+    });
+}
+
 function mountScene(viewport, { direction, width, height }) {
     const message = document.querySelector('#scene-message');
     if (!window.THREE || !THREE.OrbitControls) {
@@ -115,6 +150,7 @@ function mountScene(viewport, { direction, width, height }) {
         renderer.setSize(viewport.clientWidth, viewport.clientHeight, false);
         fit();
     }).observe(viewport);
+    setupExpandedView(viewport);
     reset();
     fit();
 
