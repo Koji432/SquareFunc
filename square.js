@@ -19,7 +19,9 @@
         return;
     }
 
-    const colors = ['#79a6ff', '#52e0c7', '#fa8caa', '#b098ff', '#ffcc75', '#64cce9'];
+    const colors = ['#4679e7', '#21aa92', '#dd6389', '#8e69db', '#dfa54b', '#33a2c9'];
+    const theme = getComputedStyle(document.documentElement);
+    const labelColors = colors.map((_, index) => theme.getPropertyValue(`--piece-${index + 1}`).trim());
     const world = new THREE.Group();
     view.scene.add(world);
     view.scene.add(new THREE.HemisphereLight(0xe8f0ff, 0x667497, 0.92));
@@ -29,10 +31,10 @@
 
     const cubeGeometry = new THREE.BoxGeometry(0.975, 0.975, 0.975);
     const cubeEdges = new THREE.EdgesGeometry(cubeGeometry);
-    const edges = new THREE.LineBasicMaterial({ color: 0x101a33, transparent: true, opacity: 0.56 });
-    const ghostEdges = new THREE.LineBasicMaterial({ color: 0xe0e8ff, transparent: true, opacity: 0.46 });
+    const edges = new THREE.LineBasicMaterial({ color: 0x162842, transparent: true, opacity: 0.57 });
+    const ghostEdges = new THREE.LineBasicMaterial({ color: 0x496488, transparent: true, opacity: 0.62 });
     const materials = colors.map(color => new THREE.MeshLambertMaterial({ color }));
-    const frameMaterial = new THREE.LineBasicMaterial({ color: 0xafc1ec, transparent: true, opacity: 0.42 });
+    const frameMaterial = new THREE.LineBasicMaterial({ color: 0x385581, transparent: true, opacity: 0.42 });
     const forward = new THREE.Vector3(...direction).normalize();
     const right = new THREE.Vector3(forward.z, 0, -forward.x).normalize();
     const up = new THREE.Vector3().crossVectors(forward, right).normalize();
@@ -207,7 +209,7 @@
             ghost.position.copy(end);
             world.add(group, ghost);
 
-            const removeLabel = view.addLabel(String(index + 1), colors[index], () => {
+            const removeLabel = view.addLabel(String(index + 1), labelColors[index], () => {
                 return labelPoint.copy(group.position).addScaledVector(up, -n * 0.60 - 0.27);
             }, () => progress < 0.04 || activePiece === index && progress === 1 && pieces[index].offset > 0.75);
             return { group, ghost, cubes, outline, start, end, startRotation, distance, offset: 0, removeLabel };

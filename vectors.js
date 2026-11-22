@@ -103,16 +103,16 @@
     const aGuide = makeLine(new THREE.LineDashedMaterial({ color: aColor, transparent: true, opacity: 0.5 }));
     const heightGuide = makeLine(new THREE.LineDashedMaterial({ color: sumColor, transparent: true, opacity: 0.54 }));
     const axisInfo = [
-        { name: 'x', color: '#fa9cae', direction: new THREE.Vector3(1, 0, 0) },
-        { name: 'y', color: '#a4baff', direction: new THREE.Vector3(0, 0, -1) },
-        { name: 'z', color: '#86dcc5', direction: new THREE.Vector3(0, 1, 0) },
+        { name: 'x', color: '#9d565a', direction: new THREE.Vector3(1, 0, 0) },
+        { name: 'y', color: '#596aa8', direction: new THREE.Vector3(0, 0, -1) },
+        { name: 'z', color: '#447862', direction: new THREE.Vector3(0, 1, 0) },
     ];
     axisInfo.forEach(axis => {
         axis.positive = makeArrow(axis.color);
         axis.negative = makeLine(new THREE.LineBasicMaterial({ color: axis.color, transparent: true, opacity: 0.29 }));
         view.addLabel(axis.name, axis.color, () => labelPoint.copy(axis.direction).multiplyScalar(span + 0.55));
     });
-    view.addLabel('O', '#aebbd7', () => origin, () => true, [-9, 11]);
+    view.addLabel('O', '#536581', () => origin, () => true, [-9, 11]);
     view.addLabel('A', aColor, () => labelPoint.copy(a).multiplyScalar(0.64), () => a.lengthSq() > 0, [-8, -8]);
     view.addLabel('B', bColor, () => labelPoint.copy(bStart).lerp(bEnd, 0.66), () => b.lengthSq() > 0, [9, 8]);
     view.addLabel('A + B', sumColor, () => sumEnd, () => position > 1.85, [4, -12]);
@@ -128,7 +128,7 @@
             grid.geometry.dispose();
             grid.material.dispose();
         }
-        grid = new THREE.GridHelper(span * 2, span * 2, 0x42567e, 0x263855);
+        grid = new THREE.GridHelper(span * 2, span * 2, 0xa2b4d0, 0xc6d3e6);
         grid.position.y = -0.012;
         grid.material.transparent = true;
         grid.material.opacity = 0.75;
