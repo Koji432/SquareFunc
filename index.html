@@ -1,425 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>平方数の和 3Dビジュアライザー</title>
-    <style>
-        /* === 今風のモダンなデザイン設定 === */
-        :root {
-            --primary-color: #007aff; /* iOS風のブルー */
-            --bg-color: #f2f2f7;
-            --panel-bg: rgba(255, 255, 255, 0.85); /* 半透明の白 */
-            --text-color: #1c1c1e;
-            --border-radius: 16px;
-        }
-
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            background-color: var(--bg-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-color);
-            -webkit-touch-callout: none; /* スマホでの長押し選択を防止 */
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        /* === 1. 上部の情報＆設定パネル === */
-        #info { 
-            position: absolute; 
-            top: 20px; 
-            left: 5%; 
-            width: 90%; 
-            box-sizing: border-box;
-            background: var(--panel-bg); 
-            backdrop-filter: blur(10px); /* 背景をぼかすガラス効果 */
-            -webkit-backdrop-filter: blur(10px);
-            padding: 15px; 
-            border-radius: var(--border-radius); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            z-index: 10;
-        }
-
-        h2 { 
-            margin: 0 0 10px 0; 
-            font-size: 18px; 
-            text-align: center;
-        }
-
-        p {
-            font-size: 13px;
-            color: #666;
-            margin: 5px 0 15px 0;
-            text-align: center;
-        }
-
-        /* スマホ向けに押しやすいドロップダウン */
-        .select-wrapper {
-            position: relative;
-            width: 100%;
-        }
-        select { 
-            width: 100%;
-            font-size: 16px; 
-            padding: 12px; 
-            border-radius: 10px;
-            border: 1px solid #d1d1d6;
-            background-color: #fff;
-            color: var(--text-color);
-            appearance: none; /* 標準の矢印を消す */
-            outline: none;
-        }
-        /* ドロップダウン用のカスタム矢印 */
-        .select-wrapper::after {
-            content: "▼";
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 12px;
-            color: #999;
-            pointer-events: none;
-        }
-
-        /* === 2. ローディング画面 === */
-        #loading { 
-            position: absolute; 
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(242, 242, 247, 0.9);
-            backdrop-filter: blur(5px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px; 
-            font-weight: bold; 
-            z-index: 20;
-            color: var(--primary-color);
-        }
-        /* くるくる回るアニメーション */
-        .spinner {
-            width: 40px; height: 40px;
-            border: 4px solid #d1d1d6;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* === 3. 下部のスライダー（トグル）パネル === */
-        #ui-container { 
-            position: absolute; 
-            bottom: 30px; 
-            left: 5%; 
-            width: 90%; 
-            box-sizing: border-box;
-            background: var(--panel-bg); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 20px; 
-            border-radius: var(--border-radius); 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
-            z-index: 10;
-        }
-
-        /* スライダーの両端の文字 */
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            font-weight: bold;
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        /* スマホ向けカスタムスライダー */
-        input[type=range] { 
-            -webkit-appearance: none;
-            width: 100%; 
-            background: transparent; 
-        }
-        input[type=range]:focus { outline: none; }
-        
-        /* スライダーのレール部分 */
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 8px;
-            background: #d1d1d6;
-            border-radius: 4px;
-        }
-        /* スライダーのつまみ部分 */
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 32px;
-            width: 32px;
-            border-radius: 50%;
-            background: #fff;
-            border: 1px solid #d1d1d6;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            margin-top: -12px; /* レールの中央に合わせる調整 */
-            cursor: pointer;
-        }
-        /* つまみを触っている時の色変更 */
-        input[type=range]:active::-webkit-slider-thumb {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b1020">
+    <title>平方数の和 | SquareFunc</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script defer src="scene.js"></script>
+    <script defer src="packing.js"></script>
+    <script defer src="square.js"></script>
 </head>
 <body>
-    <div id="info">
-        <h2>平方数の和の視覚化</h2>
-        <p>画面をスワイプして視点を動かせます</p>
-        
-        <div class="select-wrapper">
-            <select id="n-select">
-                <option value="1">n = 1 (平方数: 1)</option>
-                <option value="2">n = 2 (平方数: 4)</option>
-                <option value="3" selected>n = 3 (平方数: 9)</option>
-                <option value="4">n = 4 (※計算に時間がかかります)</option>
-                <option value="5">n = 5 (※フリーズの可能性あり)</option>
-                <option value="6">n = 6 (※フリーズの可能性あり)</option>
-            </select>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>SquareFunc</a>
+            <nav aria-label="教材">
+                <a href="index.html" aria-current="page">平方数の和</a>
+                <a href="vectors.html" target="_blank" rel="noopener" aria-label="ベクトルの合成（別タブ）">ベクトルの合成</a>
+            </nav>
         </div>
-    </div>
-    
-    <div id="loading" style="display: none;">
-        <div class="spinner"></div>
-        <div>パズルを計算中...</div>
-    </div>
+    </header>
 
-    <div id="ui-container" style="display:none;">
-        <div class="slider-labels">
-            <span>バラバラ</span>
-            <span>合体</span>
+    <main class="shell">
+        <div class="page-heading">
+            <h1>平方数の和</h1>
+            <p>6つの階段状のピースで直方体をつくる</p>
         </div>
-        <input type="range" id="assemblySlider" min="0" max="1" step="0.005" value="0">
-    </div>
+        <div class="workspace">
+            <section class="stage" aria-labelledby="view-title">
+                <header class="stage-header">
+                    <h2 id="view-title"><span class="view-icon" aria-hidden="true"></span>3Dビュー</h2>
+                    <button class="quiet-button" id="reset-view" type="button">視点を戻す</button>
+                </header>
+                <div id="viewport" class="viewport" aria-label="6つのピースの3Dモデル">
+                    <p class="scene-message" id="scene-message" role="status">3Dモデルを読み込み中</p>
+                </div>
+                <footer class="stage-footer">
+                    <span class="view-state" id="view-state" role="status">分解</span>
+                    <span class="view-hint">ドラッグで回転 · スクロール／ピンチで拡大</span>
+                </footer>
+            </section>
 
-    <script>
-        let scene, camera, renderer, controls;
-        let objectGroup = new THREE.Group(); 
-        let pyramidsData = [];
+            <aside class="panel" aria-label="3Dモデルの操作">
+                <section class="panel-section">
+                    <h2 id="size-title">段数 <var>n</var></h2>
+                    <div class="choices size-choices" role="group" aria-labelledby="size-title" id="size-choices">
+                        <button type="button" data-size="1" aria-pressed="false">1</button>
+                        <button type="button" data-size="2" aria-pressed="false">2</button>
+                        <button type="button" data-size="3" aria-pressed="true">3</button>
+                        <button type="button" data-size="4" aria-pressed="false">4</button>
+                        <button type="button" data-size="5" aria-pressed="false">5</button>
+                        <button type="button" data-size="6" aria-pressed="false">6</button>
+                    </div>
+                </section>
+                <section class="panel-section">
+                    <div class="section-heading">
+                        <h2><label for="assembly">組み立て</label></h2>
+                        <output id="progress-value" for="assembly">0%</output>
+                    </div>
+                    <input id="assembly" class="timeline" type="range" min="0" max="1000" value="0">
+                    <div class="range-labels" aria-hidden="true"><span>分解</span><span>合体</span></div>
+                    <button class="primary-button" id="play" type="button"><span class="play-icon" aria-hidden="true"></span><span id="play-label">組み立てる</span></button>
+                </section>
+                <section class="panel-section">
+                    <h2 id="inspect-title">ピースを確認</h2>
+                    <p class="panel-note" id="inspect-note" role="status">合体すると、ピースを横に引き出せます。</p>
+                    <div class="choices piece-choices" id="pieces" role="group" aria-labelledby="inspect-title" aria-describedby="inspect-note">
+                        <button type="button" data-piece="0" aria-label="ピース 1" aria-pressed="false" disabled><i></i>1</button>
+                        <button type="button" data-piece="1" aria-label="ピース 2" aria-pressed="false" disabled><i></i>2</button>
+                        <button type="button" data-piece="2" aria-label="ピース 3" aria-pressed="false" disabled><i></i>3</button>
+                        <button type="button" data-piece="3" aria-label="ピース 4" aria-pressed="false" disabled><i></i>4</button>
+                        <button type="button" data-piece="4" aria-label="ピース 5" aria-pressed="false" disabled><i></i>5</button>
+                        <button type="button" data-piece="5" aria-label="ピース 6" aria-pressed="false" disabled><i></i>6</button>
+                    </div>
+                    <div class="inspect-actions">
+                        <button class="quiet-button" id="return-piece" type="button" disabled>元に戻す</button>
+                        <button class="quiet-button" id="next-piece" type="button" disabled>次のピース</button>
+                    </div>
+                </section>
+            </aside>
+        </div>
 
-        function initThreeJS() {
-            scene = new THREE.Scene();
-            scene.add(objectGroup); 
-            
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0xf2f2f7); // CSSの背景色に合わせました
-            document.body.appendChild(renderer.domElement);
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-            const light = new THREE.DirectionalLight(0xffffff, 1.2);
-            light.position.set(10, 20, 10);
-            scene.add(light);
-            scene.add(new THREE.AmbientLight(0x606060));
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-
-            animate();
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            const slider = document.getElementById('assemblySlider');
-            if (slider && pyramidsData.length > 0) {
-                const t = parseFloat(slider.value);
-                const easeT = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-                
-                pyramidsData.forEach(p => {
-                    p.mesh.position.lerpVectors(p.startPos, p.endPos, easeT);
-                    p.mesh.quaternion.slerpQuaternions(p.startQuat, p.endQuat, easeT);
-                });
-            }
-
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        function calculateAndRender(n) {
-            document.getElementById('loading').style.display = 'flex'; // blockからflexに変更（中央揃えのため）
-            document.getElementById('ui-container').style.display = 'none';
-            document.getElementById('assemblySlider').value = 0; 
-
-            setTimeout(() => {
-                const W = n, H = n + 1, D = 2 * n + 1;
-
-                const baseBlocks = [];
-                for(let y = 0; y < n; y++) {
-                    for(let x = 0; x < n - y; x++) {
-                        for(let z = 0; z < n - y; z++) {
-                            baseBlocks.push([x, y, z]);
-                        }
-                    }
-                }
-
-                const matrices = [
-                    [1,0,0, 0,1,0, 0,0,1], [1,0,0, 0,0,-1, 0,1,0], [1,0,0, 0,-1,0, 0,0,-1], [1,0,0, 0,0,1, 0,-1,0],
-                    [0,-1,0, 1,0,0, 0,0,1], [0,0,1, 1,0,0, 0,1,0], [0,1,0, 1,0,0, 0,0,-1], [0,0,-1, 1,0,0, 0,-1,0],
-                    [-1,0,0, 0,-1,0, 0,0,1], [-1,0,0, 0,0,1, 0,1,0], [-1,0,0, 0,1,0, 0,0,-1], [-1,0,0, 0,0,-1, 0,-1,0],
-                    [0,1,0, -1,0,0, 0,0,1], [0,0,-1, -1,0,0, 0,1,0], [0,-1,0, -1,0,0, 0,0,-1], [0,0,1, -1,0,0, 0,-1,0],
-                    [0,0,1, 0,1,0, -1,0,0], [0,1,0, 0,0,-1, -1,0,0], [0,0,-1, 0,-1,0, -1,0,0], [0,-1,0, 0,0,1, -1,0,0],
-                    [0,0,-1, 0,1,0, 1,0,0], [0,1,0, 0,0,1, 1,0,0], [0,0,1, 0,-1,0, 1,0,0], [0,-1,0, 0,0,-1, 1,0,0]
-                ];
-
-                const placements = [];
-                const uniqueShapes = new Set();
-                matrices.forEach(mat => {
-                    let transformed = baseBlocks.map(p => [
-                        p[0]*mat[0] + p[1]*mat[1] + p[2]*mat[2],
-                        p[0]*mat[3] + p[1]*mat[4] + p[2]*mat[5],
-                        p[0]*mat[6] + p[1]*mat[7] + p[2]*mat[8]
-                    ]);
-                    let minX = Math.min(...transformed.map(p=>p[0]));
-                    let minY = Math.min(...transformed.map(p=>p[1]));
-                    let minZ = Math.min(...transformed.map(p=>p[2]));
-                    let shifted = transformed.map(p => [p[0]-minX, p[1]-minY, p[2]-minZ]);
-                    shifted.sort((a,b) => (a[0]-b[0]) || (a[1]-b[1]) || (a[2]-b[2]));
-                    
-                    let hash = shifted.map(p => p.join(',')).join('|');
-                    if(!uniqueShapes.has(hash)) {
-                        uniqueShapes.add(hash);
-                        let maxX = Math.max(...shifted.map(p=>p[0]));
-                        let maxY = Math.max(...shifted.map(p=>p[1]));
-                        let maxZ = Math.max(...shifted.map(p=>p[2]));
-                        
-                        for(let x=0; x<W-maxX; x++) {
-                            for(let y=0; y<H-maxY; y++) {
-                                for(let z=0; z<D-maxZ; z++) {
-                                    placements.push(shifted.map(b => [b[0]+x, b[1]+y, b[2]+z]));
-                                }
-                            }
-                        }
-                    }
-                });
-
-                const cellMap = new Array(W*H*D).fill(0).map(()=>[]);
-                placements.forEach((pl, idx) => {
-                    pl.forEach(b => cellMap[b[0] + b[1]*W + b[2]*W*H].push(idx));
-                });
-
-                let solution = null;
-                let grid = new Int32Array(W*H*D);
-                
-                function getBestEmptyCell() {
-                    let bestCell = -1, minOptions = 999;
-                    for(let i=0; i<W*H*D; i++) {
-                        if (grid[i] === 0) {
-                            let options = 0;
-                            for(let pIdx of cellMap[i]) {
-                                if (placements[pIdx].every(b => grid[b[0] + b[1]*W + b[2]*W*H] === 0)) options++;
-                            }
-                            if (options === 0) return -2;
-                            if (options < minOptions) { minOptions = options; bestCell = i; }
-                        }
-                    }
-                    return bestCell;
-                }
-
-                function solvePuzzle(depth, used) {
-                    if (depth === 6) { solution = used.map(idx => placements[idx]); return true; }
-                    let targetCell = getBestEmptyCell();
-                    if (targetCell < 0) return false;
-
-                    for(let pIdx of cellMap[targetCell]) {
-                        let pl = placements[pIdx];
-                        if (pl.every(b => grid[b[0] + b[1]*W + b[2]*W*H] === 0)) {
-                            pl.forEach(b => grid[b[0] + b[1]*W + b[2]*W*H] = 1);
-                            used.push(pIdx);
-                            if (solvePuzzle(depth+1, used)) return true;
-                            used.pop();
-                            pl.forEach(b => grid[b[0] + b[1]*W + b[2]*W*H] = 0);
-                        }
-                    }
-                    return false;
-                }
-
-                const success = solvePuzzle(0, []);
-
-                if (success) {
-                    while(objectGroup.children.length > 0){ 
-                        objectGroup.remove(objectGroup.children[0]); 
-                    }
-                    pyramidsData = []; 
-
-                    const colors = [0xe74c3c, 0x2ecc71, 0x3498db, 0xf1c40f, 0x9b59b6, 0x1abc9c];
-                    const cx = (W - 1) / 2, cy = (H - 1) / 2, cz = (D - 1) / 2;
-
-                    for (let i = 0; i < 6; i++) {
-                        const group = new THREE.Group();
-                        const blocks = solution[i];
-                        let centerOfMass = new THREE.Vector3();
-
-                        for (let b of blocks) {
-                            const geometry = new THREE.BoxGeometry(0.95, 0.95, 0.95);
-                            const material = new THREE.MeshLambertMaterial({ color: colors[i] });
-                            const cube = new THREE.Mesh(geometry, material);
-                            
-                            cube.position.set(b[0] - cx, b[1] - cy, b[2] - cz);
-                            
-                            const edges = new THREE.EdgesGeometry(geometry);
-                            cube.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 })));
-                            
-                            group.add(cube);
-                            centerOfMass.add(cube.position);
-                        }
-                        
-                        centerOfMass.divideScalar(baseBlocks.length);
-                        objectGroup.add(group);
-
-                        const startPos = centerOfMass.clone().multiplyScalar(2.5);
-                        const axis = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize();
-                        const startQuat = new THREE.Quaternion().setFromAxisAngle(axis, Math.PI * (Math.random() + 0.5));
-
-                        pyramidsData.push({
-                            mesh: group,
-                            startPos: startPos,
-                            endPos: new THREE.Vector3(0, 0, 0),
-                            startQuat: startQuat,
-                            endQuat: new THREE.Quaternion().identity()
-                        });
-                    }
-
-                    const frameGeo = new THREE.BoxGeometry(W, H, D);
-                    const frameMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.2 });
-                    objectGroup.add(new THREE.Mesh(frameGeo, frameMat));
-
-                    camera.position.set(W * 3.5, H * 2.5, D * 2.5);
-                } else {
-                    alert("パズルを解けませんでした。");
-                }
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('ui-container').style.display = 'block';
-
-            }, 50); 
-        }
-
-        window.onload = () => {
-            initThreeJS();
-            
-            const selectElement = document.getElementById('n-select');
-            selectElement.addEventListener('change', (e) => {
-                const selectedN = parseInt(e.target.value);
-                calculateAndRender(selectedN);
-            });
-
-            calculateAndRender(3);
-        };
-    </script>
+        <section class="result" aria-label="平方数の和の公式">
+            <div class="result-cell math-cell">
+                <h2>平方数の和</h2>
+                <div class="formula" role="math" aria-label="1 の二乗から n の二乗の和は n かける n プラス 1 かける 2 n プラス 1 割る 6">
+                    <span aria-hidden="true">1<sup>2</sup> + 2<sup>2</sup> + ⋯ + <var>n</var><sup>2</sup> =</span>
+                    <span class="fraction" aria-hidden="true"><span><var>n</var>(<var>n</var> + 1)(2<var>n</var> + 1)</span><span>6</span></span>
+                </div>
+            </div>
+            <div class="result-cell"><h2>直方体の寸法</h2><p id="dimensions">3 × 4 × 7</p></div>
+            <div class="result-cell"><h2>1ピースの立方体数</h2><p id="cube-count">14 <small>個</small></p></div>
+        </section>
+    </main>
 </body>
 </html>
